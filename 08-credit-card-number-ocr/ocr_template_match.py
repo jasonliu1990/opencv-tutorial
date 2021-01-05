@@ -2,6 +2,7 @@
 import numpy as np
 import cv2
 import imutils
+from imutils import contours
 import myutils
 import argparse
 # config
@@ -101,6 +102,68 @@ for (i, c) in enumerate(cnts):
     ar = w / float(h)
     # 選擇合適的區域
     if ar > 2.5 and ar < 4.0:
+        if (w > 40 and w < 55) and (h > 10 and h <20):
+            locs.append((x, y, w, h))
+# 左到右排序
+locs = sorted(locs, key=lambda x: x[0])
+output = []
+
+for (i, (gX, gY, gW, gH)) in enumerate(locs):
+    group_output = []
+
+    # 依據座標取出每一組
+    group = gray[gY - 5: gY + gH + 5, gX - 5: gX + gW + 5]
+    cv_show(group)
+    # 預處理
+    group = cv2.threshold(group, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    cv_show(group)
+    # 每一組輪廓
+    digits_cnt, hierarchy = cv2.findContours(group.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    digits_cnt = contours.sort_contours(digits_cnt, method='left-to-right')[0]
+    # 計算每一個數值
+    for c in digits_cnt:
+        (x, y, w, h) = cv2.boundingRect(c)
+        roi = group[y: y + h, x:x + w]
+        roi = cv2.resize(roi, (57, 88))
+        cv_show(roi)
+        # 計算匹配得分
+        scores = []
+        # 在模板中計算得分
+        for (digit, digit_roi) in digits.items():
+            # 模板匹配
+            result = cv2.matchTemplate(roi, digit_roi, cv2.TM_CCOEFF)
+            (_, score, _, _) = cv2.minMaxLoc(result)
+            scores.append(score)
+        # 得到最適合的數字
+        group_output.append(str(np.argmax(scores)))
+
+    # plot
+    cv2.rectangle(image, (gX - 5, gY -5), (gX + gW + 5, gY + gH + 5), (0, 0, 255), 2)
+    cv2.putText(image, ''.join(group_output), (gX, gY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 0, 255), 2)
+
+    output.extend(group_output)
+
+print(f'credit card type {FIRST_NUMBER[output[0]]}')
+print(f"credit card #: {''.join(output)}")
+cv_show(image)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
