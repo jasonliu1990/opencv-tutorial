@@ -124,3 +124,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 第2-7章notebook课件
+*.idea
