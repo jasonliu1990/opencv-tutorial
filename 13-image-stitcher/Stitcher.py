@@ -76,16 +76,15 @@ class Stitcher:
         vis[0:hA, 0:wA] = image_a
         vis[0:hB, wA:] = image_b
 
-        # 联合遍历，画出匹配对
+        
         for ((trainIdx, queryIdx), s) in zip(matches, status):
-            # 当点对匹配成功时，画到可视化图上
+            # 當匹配成功時, 畫到圖像上
             if s == 1:
-                # 画出匹配对
+                # 劃出匹配點對
                 ptA = (int(kps_a[queryIdx][0]), int(kps_a[queryIdx][1]))
                 ptB = (int(kps_b[trainIdx][0]) + wA, int(kps_b[trainIdx][1]))
                 cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
 
-        # 返回可视化结果
         return vis
 
 
